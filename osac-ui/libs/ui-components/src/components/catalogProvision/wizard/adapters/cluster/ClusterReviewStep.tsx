@@ -12,11 +12,12 @@ import {
 } from '@patternfly/react-core';
 import { useFormikContext } from 'formik';
 
+import { Projects } from '@osac/types';
+import { useListResource } from '@osac/ui-components/api/use-resource';
 import {
   CLUSTER_VERSION_ACTIVE_LIST_FILTER,
   useClusterVersions,
 } from '@osac/ui-components/api/v1/cluster-versions';
-import { useProjects } from '@osac/ui-components/api/v1/project';
 import { CatalogItem } from '@osac/ui-components/components/catalog/catalogItemDisplay';
 import {
   fullProjectPathToQueryFilter,
@@ -59,7 +60,7 @@ export const ClusterReviewStep = ({ catalogItem }: Props) => {
     data: projects,
     isLoading: projectsLoading,
     error: projectsError,
-  } = useProjects({ filter: fullProjectPathToQueryFilter(values.metadata.project) });
+  } = useListResource(Projects, { filter: fullProjectPathToQueryFilter(values.metadata.project) });
 
   const isCustomNetwork = !values.spec.useDefaultNetwork;
 
@@ -101,7 +102,9 @@ export const ClusterReviewStep = ({ catalogItem }: Props) => {
           <DescriptionListGroup>
             <DescriptionListTerm>{t('Project')}</DescriptionListTerm>
             <DescriptionListDescription>
-              {projects?.length === 1 ? getProjectName(projects[0], t) : values.metadata.project}
+              {projects?.size === 1
+                ? getProjectName(projects.items[0], t)
+                : values.metadata.project}
             </DescriptionListDescription>
           </DescriptionListGroup>
           <DescriptionListGroup>

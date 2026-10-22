@@ -34,6 +34,13 @@ const defaultProjects = [
   makeProject('p-2', 'backend', ProjectState.PENDING),
 ];
 
+const nestedProjects = [
+  makeProject('p-root', ''),
+  makeProject('p-foo', 'foo'),
+  makeProject('p-foo-bar', 'foo.bar'),
+  makeProject('p-foo-bar-baz', 'foo.bar.baz'),
+];
+
 const renderPage = (projects: Project[] = defaultProjects) =>
   renderWithProviders(<ProjectListPage />, {
     apiFixtures: { projects },
@@ -75,6 +82,28 @@ describe('ProjectListPage', () => {
     expect(screen.getByText('backend')).toBeInTheDocument();
     expect(screen.getByText('Active')).toBeInTheDocument();
     expect(screen.getByText('Pending')).toBeInTheDocument();
+  });
+
+  it('renders nested projects as an expandable tree', async () => {
+    const { user } = renderPage(nestedProjects);
+
+    await waitFor(() => {
+      expect(screen.getByRole('treegrid', { name: 'Projects' })).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('link', { name: 'Root' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'foo' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'foo.bar' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'bar' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Expand project' }));
+
+    expect(screen.getByRole('link', { name: 'bar' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Expand project' })).toHaveLength(1);
+
+    await user.click(screen.getByRole('button', { name: 'Expand project' }));
+
+    expect(screen.getByRole('link', { name: 'baz' })).toBeInTheDocument();
   });
 
   it('shows the Create project link for tenant-admin', async () => {
@@ -149,12 +178,12 @@ describe('ProjectListPage', () => {
     expect(screen.queryByText('backend')).not.toBeInTheDocument();
   });
 
-  it('shows "default" for projects with empty name', async () => {
+  it('shows "root" for projects with empty name', async () => {
     const emptyNameProject = makeProject('p-3', '');
     renderPage([emptyNameProject]);
 
     await waitFor(() => {
-      expect(screen.getByText('Default')).toBeInTheDocument();
+      expect(screen.getByText('Root')).toBeInTheDocument();
     });
   });
 });

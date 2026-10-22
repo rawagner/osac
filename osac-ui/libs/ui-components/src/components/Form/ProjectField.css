@@ -1,0 +1,4 @@
+.osac-project-field__list {
+  max-block-size: 20rem;
+  overflow-y: auto;
+}

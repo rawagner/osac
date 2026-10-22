@@ -12,8 +12,9 @@ import {
 } from '@patternfly/react-core';
 import { useFormikContext } from 'formik';
 
+import { Projects } from '@osac/types';
+import { useListResource } from '@osac/ui-components/api/use-resource';
 import { useInstanceType } from '@osac/ui-components/api/v1/instance-types';
-import { useProjects } from '@osac/ui-components/api/v1/project';
 import { CatalogItem } from '@osac/ui-components/components/catalog/catalogItemDisplay';
 import {
   fullProjectPathToQueryFilter,
@@ -46,7 +47,7 @@ export const VmReviewStep = ({ catalogItem }: Props) => {
     data: projects,
     isLoading: projectsLoading,
     error: projectsError,
-  } = useProjects({ filter: fullProjectPathToQueryFilter(values.metadata.project) });
+  } = useListResource(Projects, { filter: fullProjectPathToQueryFilter(values.metadata.project) });
 
   if (instanceLoading || projectsLoading) {
     return (
@@ -94,7 +95,9 @@ export const VmReviewStep = ({ catalogItem }: Props) => {
           <DescriptionListGroup>
             <DescriptionListTerm>{t('Project')}</DescriptionListTerm>
             <DescriptionListDescription>
-              {projects?.length === 1 ? getProjectName(projects[0], t) : values.metadata.project}
+              {projects?.size === 1
+                ? getProjectName(projects.items[0], t)
+                : values.metadata.project}
             </DescriptionListDescription>
           </DescriptionListGroup>
           <DescriptionListGroup>
