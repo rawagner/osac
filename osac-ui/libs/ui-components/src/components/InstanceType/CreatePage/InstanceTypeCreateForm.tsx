@@ -19,10 +19,12 @@ import { instanceTypeFieldIds } from '../fieldIds';
 import { InstanceTypeCreateFormValues, instanceTypeCreateValues } from './values';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { getErrorMessage } from '../../../utils/error';
-import { InputField } from '../../Form/InputField';
 import LeaveFormConfirmation from '../../Form/LeaveFormConfirmation';
 import NameField from '../../Form/NameField';
+import NumberField from '../../Form/NumberField';
 import OsacForm from '../../Form/OsacForm';
+import TextAreaField from '../../Form/TextAreaField';
+import TextField from '../../Form/TextField';
 
 export const INSTANCE_TYPES_LIST_ROUTE = '/admin/infrastructure/instance-types';
 
@@ -74,42 +76,38 @@ const InstanceTypeCreateForm = () => {
             <StackItem>
               <OsacForm>
                 <NameField fieldId={instanceTypeFieldIds.name} />
-                <InputField
+                <TextAreaField
                   name="spec.description"
                   label={t('Description')}
                   fieldId={instanceTypeFieldIds.description}
-                  multiline
                 />
-                <InputField
+                <NumberField
                   name="spec.vcpus"
                   label={t('vCPUs')}
                   fieldId={instanceTypeFieldIds.vcpus}
-                  type="number"
                   isRequired
                 />
-                <InputField
+                <NumberField
                   name="spec.memoryGib"
                   label={t('Memory (GiB)')}
                   fieldId={instanceTypeFieldIds.memoryGib}
-                  type="number"
                   isRequired
                 />
                 <FormSection title={t('GPU')}>
-                  <InputField
+                  <NumberField
                     name="spec.gpu.count"
                     label={t('GPU count')}
                     fieldId={instanceTypeFieldIds.gpuCount}
-                    type="number"
                     helperText={t('Number of GPU devices of this type.')}
                   />
-                  <InputField
+                  <TextField
                     name="spec.gpu.resourceName"
                     label={t('Resource name')}
                     fieldId={instanceTypeFieldIds.gpuResourceName}
                     placeholder={t('e.g. nvidia.com/A100')}
                     helperText={t('Kubernetes device plugin resource name.')}
                   />
-                  <InputField
+                  <TextField
                     name="spec.gpu.pciDeviceSelector"
                     label={t('PCI device selector')}
                     fieldId={instanceTypeFieldIds.gpuPciDeviceSelector}

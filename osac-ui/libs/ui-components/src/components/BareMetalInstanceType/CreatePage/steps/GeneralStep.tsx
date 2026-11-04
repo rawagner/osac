@@ -1,10 +1,10 @@
 import { Stack, StackItem, Title } from '@patternfly/react-core';
 
 import { useTranslation } from '../../../../hooks/useTranslation';
-import { InputField } from '../../../Form/InputField';
 import { KeyValueMapField } from '../../../Form/KeyValueMapField';
 import NameField from '../../../Form/NameField';
 import OsacForm from '../../../Form/OsacForm';
+import TextAreaField from '../../../Form/TextAreaField';
 
 interface GeneralStepProps {
   isEdit: boolean;
@@ -22,11 +22,10 @@ const GeneralStep = ({ isEdit }: GeneralStepProps) => {
       <StackItem>
         <OsacForm>
           <NameField isDisabled={isEdit} />
-          <InputField
+          <TextAreaField
             name="spec.description"
             label={t('Description')}
             fieldId="baremetal-instance-type-description"
-            multiline
           />
           <KeyValueMapField
             name="spec.hostLabelSelector"

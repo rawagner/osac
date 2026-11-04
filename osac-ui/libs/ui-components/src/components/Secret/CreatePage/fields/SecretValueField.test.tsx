@@ -13,7 +13,7 @@ describe('SecretValueField', () => {
     const user = userEvent.setup();
     const entry = createSecretDataEntry('token', encodeSecretValue('  original  '));
     const initialValues: SecretValues = {
-      metadata: { name: '', project: '', description: '' },
+      metadata: { name: '', project: '' },
       type: SecretType.OPAQUE,
       data: [entry],
     };
@@ -50,7 +50,7 @@ describe('SecretValueField', () => {
     const user = userEvent.setup();
     const entry = createSecretDataEntry('token', new Uint8Array());
     const initialValues: SecretValues = {
-      metadata: { name: '', project: '', description: '' },
+      metadata: { name: '', project: '' },
       type: SecretType.OPAQUE,
       data: [entry],
     };

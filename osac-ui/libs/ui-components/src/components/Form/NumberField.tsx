@@ -1,12 +1,11 @@
-import { FormGroup, TextInput } from '@patternfly/react-core';
+import { type ReactNode, useRef } from 'react';
+import { FormGroup, NumberInput, Split, SplitItem, Stack } from '@patternfly/react-core';
 import { useField } from 'formik';
 
 import { getVisibleFieldError } from './fieldError';
 import { useShowFieldValidationErrors } from './FieldValidationContext';
 import { FormFieldHelper, getFormFieldHelperDescribedBy } from './FormFieldHelper';
-
-const INTEGER_INPUT_PATTERN = /^-?\d*$/;
-const INVALID_INTEGER_INPUT_KEYS = new Set(['.', ',', 'e', 'E', '+']);
+import { useTrimmedInput } from './useTrimmedInput';
 
 interface NumberFieldProps {
   name: string;
@@ -16,11 +15,12 @@ interface NumberFieldProps {
   isDisabled?: boolean;
   helperText?: string;
   placeholder?: string;
-  onBlur?: () => void;
+  labelInfo?: ReactNode;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
   min?: number;
   max?: number;
   step?: number;
-  type?: 'number' | 'bigint';
+  asFormGroup?: boolean;
 }
 
 const NumberField = ({
@@ -31,65 +31,96 @@ const NumberField = ({
   isDisabled = false,
   helperText,
   placeholder,
-  onBlur,
+  labelInfo,
+  inputMode,
   min,
   max,
   step,
-  type = 'number',
+  children,
+  asFormGroup = true,
 }: React.PropsWithChildren<NumberFieldProps>) => {
-  const [field, meta] = useField<number | bigint | undefined>(name);
+  const [field, meta, helpers] = useField<string>(name);
   const showValidationErrors = useShowFieldValidationErrors();
   const error = getVisibleFieldError(meta, showValidationErrors);
   const validated = error ? 'error' : 'default';
   const helperDescribedBy = getFormFieldHelperDescribedBy(fieldId, error, helperText);
+  const trimmedInput = useTrimmedInput(field.value, helpers.setValue);
+  const valueBeforeBlur = useRef<string | undefined>(undefined);
 
-  return (
-    <FormGroup label={label} fieldId={fieldId} isRequired={isRequired}>
-      <TextInput
-        id={fieldId}
-        name={name}
-        type={type === 'bigint' ? 'text' : 'number'}
-        inputMode="numeric"
-        value={field.value?.toString() ?? ''}
-        placeholder={placeholder}
-        min={min}
-        max={max}
-        step={step}
-        onKeyDown={(event) => {
-          if (INVALID_INTEGER_INPUT_KEYS.has(event.key)) {
-            event.preventDefault();
-          }
-        }}
-        onChange={(event, value) => {
-          if (!INTEGER_INPUT_PATTERN.test(value)) {
-            event.currentTarget.value = field.value?.toString() ?? '';
-            return;
-          }
+  const handleNumberChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.value;
+    const blurValue = valueBeforeBlur.current;
+    valueBeforeBlur.current = undefined;
+    // PatternFly calls onChange on blur, even when it only rewrites an empty input to zero.
+    if (blurValue !== undefined && (blurValue === '' || value === blurValue)) {
+      return;
+    }
+    trimmedInput.onChange(value);
+  };
 
-          const numericValue =
-            value === '' ? undefined : type === 'bigint' ? parseBigInt(value) : Number(value);
-          void field.onChange({ target: { name, value: numericValue } });
-        }}
-        onBlur={(event) => {
-          field.onBlur(event);
-          onBlur?.();
-        }}
-        isDisabled={isDisabled}
-        validated={validated}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={helperDescribedBy}
-      />
+  const handleNumberBlurCapture = (event: React.FocusEvent<HTMLInputElement>) => {
+    valueBeforeBlur.current = event.currentTarget.value;
+    field.onBlur(event);
+    trimmedInput.onBlur();
+  };
+
+  const adjustNumber = (direction: -1 | 1) => {
+    const current = Number(field.value);
+    const next = (Number.isFinite(current) ? current : 0) + direction * (step ?? 1);
+    if ((min !== undefined && next < min) || (max !== undefined && next > max)) {
+      return;
+    }
+    trimmedInput.onChange(String(next));
+  };
+
+  const numberValue =
+    field.value === '' || field.value === undefined
+      ? ''
+      : Number.isFinite(Number(field.value))
+        ? Number(field.value)
+        : '';
+
+  const content = (
+    <Stack>
+      <Split hasGutter>
+        <SplitItem isFilled>
+          <NumberInput
+            value={numberValue}
+            min={min}
+            max={max}
+            inputName={name}
+            inputAriaLabel={label}
+            onMinus={() => adjustNumber(-1)}
+            onPlus={() => adjustNumber(1)}
+            onChange={handleNumberChange}
+            isDisabled={isDisabled}
+            validated={validated}
+            inputProps={{
+              id: fieldId,
+              placeholder,
+              inputMode,
+              min,
+              max,
+              step,
+              onBlurCapture: handleNumberBlurCapture,
+              'aria-invalid': error ? true : undefined,
+              'aria-describedby': helperDescribedBy,
+            }}
+          />
+        </SplitItem>
+        {children && <SplitItem>{children}</SplitItem>}
+      </Split>
       <FormFieldHelper error={error} description={helperText} fieldId={fieldId} />
+    </Stack>
+  );
+
+  return asFormGroup ? (
+    <FormGroup label={label} fieldId={fieldId} isRequired={isRequired} labelInfo={labelInfo}>
+      {content}
     </FormGroup>
+  ) : (
+    content
   );
 };
 
 export default NumberField;
-
-const parseBigInt = (value: string): bigint | undefined => {
-  try {
-    return BigInt(value);
-  } catch {
-    return undefined;
-  }
-};

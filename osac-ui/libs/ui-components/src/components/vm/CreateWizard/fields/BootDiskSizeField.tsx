@@ -1,5 +1,5 @@
 import { useTranslation } from '../../../../hooks/useTranslation';
-import { InputField } from '../../../Form/InputField';
+import NumberField from '../../../Form/NumberField';
 import type { ProvisioningFieldControlProps } from '../../../ProvisioningWizard/fields/provisioningFieldValue';
 
 interface BootDiskSizeFieldProps extends ProvisioningFieldControlProps {
@@ -16,11 +16,10 @@ const BootDiskSizeField = ({
   const { t } = useTranslation();
 
   return (
-    <InputField
+    <NumberField
       name={name}
       label={t('Boot disk size')}
       fieldId={fieldId}
-      type="number"
       isRequired={isRequired}
       isDisabled={isDisabled}
       labelInfo={labelInfo}

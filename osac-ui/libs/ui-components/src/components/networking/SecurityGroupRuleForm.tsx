@@ -4,8 +4,9 @@ import { Protocol } from '@osac/types';
 
 import { protocolToString } from './SecurityGroupRulesTable';
 import { useTranslation } from '../../hooks/useTranslation';
-import { InputField } from '../Form/InputField';
+import NumberField from '../Form/NumberField';
 import { SelectField } from '../Form/SelectField';
+import TextField from '../Form/TextField';
 
 export interface RuleFormValues {
   protocol: number;
@@ -43,24 +44,12 @@ export const SecurityGroupRuleForm = () => {
 
       {showPortRange && (
         <>
-          <InputField
-            name="portFrom"
-            label={t('Port From')}
-            fieldId="rule-port-from"
-            type="number"
-            isRequired
-          />
-          <InputField
-            name="portTo"
-            label={t('Port To')}
-            fieldId="rule-port-to"
-            type="number"
-            isRequired
-          />
+          <NumberField name="portFrom" label={t('Port From')} fieldId="rule-port-from" isRequired />
+          <NumberField name="portTo" label={t('Port To')} fieldId="rule-port-to" isRequired />
         </>
       )}
 
-      <InputField
+      <TextField
         name="ipv4Cidr"
         label={t('IPv4 CIDR')}
         fieldId="rule-ipv4-cidr"

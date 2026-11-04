@@ -33,12 +33,12 @@ import {
 import { useTranslation } from '../../hooks/useTranslation';
 import { getErrorMessage } from '../../utils/error';
 import { resourceNameSchema } from '../../validation/resource-name';
-import { InputField } from '../Form/InputField';
 import LeaveFormConfirmation from '../Form/LeaveFormConfirmation';
 import NameField from '../Form/NameField';
 import OsacForm from '../Form/OsacForm';
 import { RadioButtonField } from '../Form/RadioButtonField';
 import { SelectField, type SelectFieldOption } from '../Form/SelectField';
+import TextField from '../Form/TextField';
 import ListPageBody from '../Page/ListPageBody';
 
 const TIERS_LIST_PATH = '/admin/infrastructure/storage/tiers';
@@ -167,7 +167,7 @@ const StorageTierForm = ({ tier, backendOptions, backendsLoading }: StorageTierF
                 <StackItem>
                   <OsacForm>
                     <NameField fieldId={storageTierFieldIds.name} isDisabled={isEdit} />
-                    <InputField
+                    <TextField
                       name="description"
                       label={t('Description')}
                       fieldId={storageTierFieldIds.description}

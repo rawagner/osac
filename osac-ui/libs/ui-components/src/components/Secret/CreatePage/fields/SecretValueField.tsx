@@ -18,7 +18,6 @@ import {
   FormFieldHelper,
   getFormFieldHelperDescribedBy,
 } from '@osac/ui-components/components/Form/FormFieldHelper';
-import { InputField } from '@osac/ui-components/components/Form/InputField';
 
 import { useTranslation } from '../../../../hooks/useTranslation';
 import { getVisibleFieldError } from '../../../Form/fieldError';
@@ -32,6 +31,7 @@ import {
   decodeSecretValue,
   encodeSecretValue,
 } from '../values';
+import TextField from '@osac/ui-components/components/Form/TextField';
 
 type InputMode = 'enter' | 'upload';
 
@@ -115,7 +115,7 @@ const SecretValueField = ({
   return (
     <Stack hasGutter>
       <StackItem>
-        <InputField
+        <TextField
           label={keyEditable ? t('Key') : t('Required key')}
           fieldId={keyFieldId}
           isRequired

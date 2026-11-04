@@ -25,12 +25,12 @@ import { useCreateDiskImage } from '../../api/v1/disk-image';
 import { useSession } from '../../hooks/use-session';
 import { useTranslation } from '../../hooks/useTranslation';
 import { getErrorMessage } from '../../utils/error';
-import { InputField } from '../Form/InputField';
 import LeaveFormConfirmation from '../Form/LeaveFormConfirmation';
 import { MultiSelectField } from '../Form/MultiSelectField';
 import NameField from '../Form/NameField';
 import OsacForm from '../Form/OsacForm';
 import { SelectField } from '../Form/SelectField';
+import TextField from '../Form/TextField';
 
 export const DISK_IMAGES_LIST_ROUTE = '/admin/infrastructure/disk-images';
 
@@ -129,7 +129,7 @@ const DiskImageForm = () => {
                   fieldId={diskImageFieldIds.sourceType}
                   value={SourceType[SourceType.REGISTRY]}
                 />
-                <InputField
+                <TextField
                   name="spec.sourceRef"
                   label={t('Source reference')}
                   fieldId={diskImageFieldIds.sourceReference}

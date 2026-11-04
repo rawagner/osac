@@ -19,8 +19,8 @@ import { cel } from '@osac/ui-components/api/cel';
 import { getVisibleFieldError } from './fieldError';
 import { useShowFieldValidationErrors } from './FieldValidationContext';
 import { FormFieldHelper } from './FormFieldHelper';
-import { InputField } from './InputField';
 import SecretSelectionField from './SecretSelectionField';
+import TextAreaField from './TextAreaField';
 import { useTranslation } from '../../hooks/useTranslation';
 
 interface UserDataFieldProps {
@@ -152,11 +152,10 @@ const UserDataField = ({
           asFormGroup={false}
         />
       ) : (
-        <InputField
+        <TextAreaField
           label={t('Cloud-init')}
           name={inlineName}
           fieldId="inline-user-data"
-          multiline
           helperText={t('Optional cloud-init user data (max 64 KB).')}
           isDisabled={isDisabled}
           asFormGroup={false}

@@ -1,8 +1,9 @@
 import { Stack, StackItem, Title } from '@patternfly/react-core';
 
-import { InputField } from '@osac/ui-components/components/Form/InputField';
 import NameField from '@osac/ui-components/components/Form/NameField';
 import OsacForm from '@osac/ui-components/components/Form/OsacForm';
+import TextAreaField from '@osac/ui-components/components/Form/TextAreaField';
+import TextField from '@osac/ui-components/components/Form/TextField';
 
 import { useTranslation } from '../../../../hooks/useTranslation';
 
@@ -22,17 +23,16 @@ const IdpGeneralStep = ({ isEdit }: IdpGeneralStepProps) => {
       <StackItem>
         <OsacForm>
           <NameField isDisabled={isEdit} />
-          <InputField
+          <TextField
             name="spec.title"
             label={t('Title')}
             helperText={t('Human-friendly short title for this IdP')}
             fieldId="idp-title"
           />
-          <InputField
+          <TextAreaField
             name="spec.description"
             label={t('Description')}
             fieldId="idp-description"
-            multiline
             rows={3}
           />
         </OsacForm>

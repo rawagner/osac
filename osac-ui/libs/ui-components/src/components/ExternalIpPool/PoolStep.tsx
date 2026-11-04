@@ -3,9 +3,9 @@ import MinusCircleIcon from '@patternfly/react-icons/dist/esm/icons/minus-circle
 import PlusCircleIcon from '@patternfly/react-icons/dist/esm/icons/plus-circle-icon';
 import { FieldArray, useFormikContext } from 'formik';
 
-import { InputField } from '@osac/ui-components/components/Form/InputField';
 import NameField from '@osac/ui-components/components/Form/NameField';
 import OsacForm from '@osac/ui-components/components/Form/OsacForm';
+import TextField from '@osac/ui-components/components/Form/TextField';
 import { useTranslation } from '@osac/ui-components/hooks/useTranslation';
 
 import type { ExternalIpPoolFormValues } from './values';
@@ -37,7 +37,7 @@ const PoolStep = () => {
                 <Stack hasGutter>
                   {values.cidrs.map((_cidr, index) => (
                     <StackItem key={index}>
-                      <InputField
+                      <TextField
                         name={`cidrs.${index}`}
                         label={t('CIDR {{number}}', { number: index + 1 })}
                         fieldId={`external-ip-pool-cidr-${index}`}
@@ -54,7 +54,7 @@ const PoolStep = () => {
                             icon={<MinusCircleIcon />}
                           />
                         )}
-                      </InputField>
+                      </TextField>
                     </StackItem>
                   ))}
                   <StackItem>

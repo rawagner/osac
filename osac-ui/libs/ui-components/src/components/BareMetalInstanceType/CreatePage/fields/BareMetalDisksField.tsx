@@ -10,8 +10,8 @@ import PlusCircleIcon from '@patternfly/react-icons/dist/esm/icons/plus-circle-i
 import { FieldArray, useFormikContext } from 'formik';
 
 import { useTranslation } from '../../../../hooks/useTranslation';
-import { InputField } from '../../../Form/InputField';
-import NumberField from '../../../Form/NumberField';
+import IntegerField from '../../../Form/IntegerField';
+import TextField from '../../../Form/TextField';
 import { type BareMetalInstanceTypeFormValues, emptyDiskValue } from '../values';
 
 const BareMetalDisksField = () => {
@@ -44,14 +44,14 @@ const BareMetalDisksField = () => {
                   />
                 }
               >
-                <InputField
+                <TextField
                   name={`spec.disks.${index}.type`}
                   label={t('Type')}
                   fieldId={`baremetal-disk-${index}-type`}
                   isRequired
                   placeholder={t('e.g. SSD, NVMe, HDD')}
                 />
-                <NumberField
+                <IntegerField
                   name={`spec.disks.${index}.capacityGb`}
                   label={t('Capacity (GB)')}
                   fieldId={`baremetal-disk-${index}-capacity`}
@@ -60,7 +60,7 @@ const BareMetalDisksField = () => {
                   step={1}
                   type="bigint"
                 />
-                <InputField
+                <TextField
                   name={`spec.disks.${index}.interface`}
                   label={t('Interface')}
                   fieldId={`baremetal-disk-${index}-interface`}
