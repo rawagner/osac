@@ -1,6 +1,7 @@
 import { FormSection, Stack, StackItem, Title } from '@patternfly/react-core';
 
 import { useTranslation } from '../../../../hooks/useTranslation';
+import BigIntField from '../../../Form/BigIntField';
 import IntegerField from '../../../Form/IntegerField';
 import OsacForm from '../../../Form/OsacForm';
 import TextField from '../../../Form/TextField';
@@ -22,7 +23,6 @@ const CpuMemoryStep = () => {
               fieldId="baremetal-instance-type-cpu-cores"
               isRequired
               min={1}
-              step={1}
             />
             <TextField
               name="spec.cpu.architecture"
@@ -42,18 +42,14 @@ const CpuMemoryStep = () => {
               fieldId="baremetal-instance-type-cpu-threads-per-core"
               isRequired
               min={1}
-              step={1}
             />
           </FormSection>
           <FormSection title={t('Memory')}>
-            <IntegerField
+            <BigIntField
               name="spec.memory.totalGb"
               label={t('Total (GB)')}
               fieldId="baremetal-instance-type-memory-total"
               isRequired
-              min={1}
-              step={1}
-              type="bigint"
             />
             <TextField
               name="spec.memory.type"

@@ -1,20 +1,14 @@
 import { FormGroup, Stack, TextInput } from '@patternfly/react-core';
 import { useField } from 'formik';
 
+import { INT32_MAX } from '@osac/ui-components/validation/number';
+
 import { getVisibleFieldError } from './fieldError';
 import { useShowFieldValidationErrors } from './FieldValidationContext';
 import { FormFieldHelper, getFormFieldHelperDescribedBy } from './FormFieldHelper';
 
-const parseBigInt = (value: string): bigint | undefined => {
-  try {
-    return BigInt(value);
-  } catch {
-    return undefined;
-  }
-};
-
-const INTEGER_INPUT_PATTERN = /^-?\d*$/;
-const INVALID_INTEGER_INPUT_KEYS = new Set(['.', ',', 'e', 'E', '+']);
+const NON_NEGATIVE_INTEGER_INPUT_PATTERN = /^\d*$/;
+const INVALID_INTEGER_INPUT_KEYS = new Set(['-', '.', ',', 'e', 'E', '+']);
 
 interface IntegerFieldProps {
   name: string;
@@ -26,9 +20,8 @@ interface IntegerFieldProps {
   placeholder?: string;
   min?: number;
   max?: number;
-  step?: number;
   asFormGroup?: boolean;
-  type?: 'number' | 'bigint'
+  labelInfo?: React.ReactNode;
 }
 
 const IntegerField = ({
@@ -39,48 +32,43 @@ const IntegerField = ({
   isDisabled = false,
   helperText,
   placeholder,
-  min,
-  max,
-  step,
-  type = 'number',
+  min = 0,
+  max = INT32_MAX,
   asFormGroup = true,
+  labelInfo,
 }: React.PropsWithChildren<IntegerFieldProps>) => {
-  const [field, meta] = useField<number | bigint | undefined>(name);
+  const [field, meta, helpers] = useField<number | undefined>(name);
   const showValidationErrors = useShowFieldValidationErrors();
   const error = getVisibleFieldError(meta, showValidationErrors);
-  const validated = error ? 'error' : 'default';
   const helperDescribedBy = getFormFieldHelperDescribedBy(fieldId, error, helperText);
+  const minimum = Math.max(min, 0);
+  const maximum = Math.min(max, INT32_MAX);
 
   const content = (
     <Stack>
       <TextInput
         id={fieldId}
         name={name}
-        type={type === 'bigint' ? 'text' : 'number'}
+        type="number"
         inputMode="numeric"
         value={field.value?.toString() ?? ''}
         placeholder={placeholder}
-        min={min}
-        max={max}
-        step={step}
+        min={minimum}
+        max={maximum}
         onKeyDown={(event) => {
           if (INVALID_INTEGER_INPUT_KEYS.has(event.key)) {
             event.preventDefault();
           }
         }}
-        onChange={(event, value) => {
-          if (!INTEGER_INPUT_PATTERN.test(value)) {
-            event.currentTarget.value = field.value?.toString() ?? '';
+        onChange={(_event, value) => {
+          if (!NON_NEGATIVE_INTEGER_INPUT_PATTERN.test(value)) {
             return;
           }
-
-          const numericValue =
-            value === '' ? undefined : type === 'bigint' ? parseBigInt(value) : Number(value);
-          void field.onChange({ target: { name, value: numericValue } });
+          void helpers.setValue(value === '' ? undefined : Number(value));
         }}
         onBlur={field.onBlur}
         isDisabled={isDisabled}
-        validated={validated}
+        validated={error ? 'error' : 'default' }
         aria-invalid={error ? true : undefined}
         aria-describedby={helperDescribedBy}
       />
@@ -89,7 +77,7 @@ const IntegerField = ({
   );
 
   return asFormGroup ? (
-    <FormGroup label={label} fieldId={fieldId} isRequired={isRequired}>
+    <FormGroup label={label} fieldId={fieldId} isRequired={isRequired} labelInfo={labelInfo}>
       {content}
     </FormGroup>
   ) : (

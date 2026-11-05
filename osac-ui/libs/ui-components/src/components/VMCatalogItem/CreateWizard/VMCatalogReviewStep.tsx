@@ -39,13 +39,13 @@ const guestOsFamilyLabel = (t: TFunction, value: GuestOSFamily | undefined): str
 const guestOsFamilyKey = (value: GuestOSFamily | undefined): GuestOSFamily =>
   value ?? GuestOSFamily.GUEST_OS_FAMILY_UNSPECIFIED;
 
-const bootDiskSizeLabel = (t: TFunction, value: string): string =>
-  value.trim() ? `${value.trim()} GiB` : t('Not set');
+const bootDiskSizeLabel = (t: TFunction, sizeGib: number | undefined): string =>
+  sizeGib === undefined ? t('Not set') : `${sizeGib} GiB`;
 
 const additionalDisksKey = (values: ComputeCatalogItemValues['additionalDisks']['value']) =>
   JSON.stringify(
     values.map((disk) => ({
-      sizeGib: disk.sizeGib.trim(),
+      sizeGib: disk.sizeGib,
       storageTier: catalogReviewResourceKey(disk.storageTier),
     })),
   );
@@ -57,9 +57,8 @@ const additionalDisksLabel = (
   values.length
     ? values
         .map((disk, index) => {
-          const size = disk.sizeGib.trim() ? `${disk.sizeGib.trim()} GiB` : t('Not set');
           const tier = catalogReviewValue(t, disk.storageTier.name);
-          return `${t('Disk set {{number}}', { number: index + 1 })}: ${size} · ${tier}`;
+          return `${t('Disk set {{number}}', { number: index + 1 })}: ${disk.sizeGib} GiB · ${tier}`;
         })
         .join('; ')
     : t('Not set');
@@ -126,8 +125,8 @@ const catalogEditChanges = (
       label: t('Boot disk size'),
       before: bootDiskSizeLabel(t, initialValues.bootDiskSizeGib.value),
       after: bootDiskSizeLabel(t, values.bootDiskSizeGib.value),
-      beforeKey: initialValues.bootDiskSizeGib.value.trim(),
-      afterKey: values.bootDiskSizeGib.value.trim(),
+      beforeKey: initialValues.bootDiskSizeGib.value,
+      afterKey: values.bootDiskSizeGib.value,
     },
     {
       label: t('Boot disk size access'),
@@ -268,9 +267,7 @@ const VMCatalogReviewStep = ({ item }: VMCatalogReviewStepProps) => {
                   <Stack hasGutter={false}>
                     {values.additionalDisks.value.map((disk, index) => (
                       <StackItem key={`${disk.sizeGib}-${index}`}>
-                        {`${t('Disk set {{number}}', { number: index + 1 })}: ${
-                          disk.sizeGib.trim() ? `${disk.sizeGib.trim()} GiB` : t('Not set')
-                        } · ${catalogReviewValue(t, disk.storageTier.name)}`}
+                        {`${t('Disk set {{number}}', { number: index + 1 })}: ${disk.sizeGib} GiB · ${catalogReviewValue(t, disk.storageTier.name)}`}
                       </StackItem>
                     ))}
                   </Stack>

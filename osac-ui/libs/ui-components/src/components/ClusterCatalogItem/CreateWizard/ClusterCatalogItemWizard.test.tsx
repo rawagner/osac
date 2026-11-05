@@ -196,7 +196,9 @@ describe('ClusterCatalogItemWizard', () => {
     await user.type(screen.getByRole('textbox', { name: 'Name' }), 'workers');
     await user.click(screen.getByRole('button', { name: 'Host type' }));
     await user.click(await screen.findByRole('option', { name: 'worker' }));
-    await user.type(screen.getByRole('spinbutton', { name: 'Nodes' }), '1');
+    const nodesInput = screen.getByRole('spinbutton', { name: 'Nodes' });
+    await user.clear(nodesInput);
+    await user.type(nodesInput, '1');
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));
 
@@ -228,7 +230,9 @@ describe('ClusterCatalogItemWizard', () => {
     await user.type(screen.getByRole('textbox', { name: 'Name' }), 'workers');
     await user.click(screen.getByRole('button', { name: 'Host type' }));
     await user.click(await screen.findByRole('option', { name: 'worker' }));
-    await user.type(screen.getByRole('spinbutton', { name: 'Nodes' }), '3');
+    const nodesInput = screen.getByRole('spinbutton', { name: 'Nodes' });
+    await user.clear(nodesInput);
+    await user.type(nodesInput, '3');
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Create' }));

@@ -2,13 +2,14 @@ import type { FormikErrors } from 'formik';
 import type { TFunction } from 'i18next';
 import * as yup from 'yup';
 
+import { intSchema } from '@osac/ui-components/validation/number';
 import { userDataSchema } from '@osac/ui-components/validation/user-data';
 
 import type { ComputeCatalogItemValues } from './values';
 import {
   catalogGeneralStepSchema,
+  catalogLockedField,
   catalogLockedResourceField,
-  catalogLockedStringField,
   catalogRequiredResourceSelectValue,
 } from '../../CatalogItem/catalogValidation';
 
@@ -19,22 +20,9 @@ export type ComputeCatalogWizardStepId =
   | 'access-init'
   | 'review';
 
-const diskSizeNumberTest = (t: TFunction) =>
-  ({
-    name: 'disk-size-number',
-    message: t('Disk size must be a number'),
-    test: (value?: string) => {
-      if (!value?.trim()) {
-        return true;
-      }
-      const size = Number(value.trim());
-      return Number.isInteger(size) && size >= 1 && size <= 16384;
-    },
-  }) as const;
-
 const diskRowSchema = (t: TFunction) =>
   yup.object({
-    sizeGib: yup.string().trim().required(t('Disk size is required')).test(diskSizeNumberTest(t)),
+    sizeGib: intSchema(t, 1, 16384).required(t('Disk size is required')),
     storageTier: catalogRequiredResourceSelectValue(t('Storage tier is required')),
   });
 
@@ -53,8 +41,8 @@ export const buildComputeCatalogStepSchema = (
       });
     case 'storage':
       return yup.object({
-        bootDiskSizeGib: catalogLockedStringField(
-          yup.string().test(diskSizeNumberTest(t)),
+        bootDiskSizeGib: catalogLockedField(
+          intSchema(t, 1, 16384),
           t('Boot disk size is required when locked'),
         ),
         bootDiskStorageTier: catalogLockedResourceField(t('Storage tier is required when locked')),

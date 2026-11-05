@@ -3,7 +3,7 @@ import { Content, Stack, StackItem, Title } from '@patternfly/react-core';
 import { StorageProtocol, VolumeAccessMode } from '@osac/types';
 
 import { useTranslation } from '../../hooks/useTranslation';
-import NumberField from '../Form/NumberField';
+import BigIntField from '../Form/BigIntField';
 import OsacForm from '../Form/OsacForm';
 import { SelectField } from '../Form/SelectField';
 import { StorageTierSelectField } from '../Form/StorageTierSelectField';
@@ -36,13 +36,10 @@ const ConfigurationStep = () => {
             protocol={StorageProtocol.BLOCK}
             isRequired
           />
-          <NumberField
+          <BigIntField
             name="spec.sizeGib"
             label={t('Size (GiB)')}
             fieldId="spec.sizeGib"
-            inputMode="numeric"
-            min={1}
-            step={1}
             isRequired
           />
           <SelectField

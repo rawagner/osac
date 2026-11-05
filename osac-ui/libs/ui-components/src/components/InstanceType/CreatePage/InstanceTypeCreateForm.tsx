@@ -19,9 +19,9 @@ import { instanceTypeFieldIds } from '../fieldIds';
 import { InstanceTypeCreateFormValues, instanceTypeCreateValues } from './values';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { getErrorMessage } from '../../../utils/error';
+import IntegerField from '../../Form/IntegerField';
 import LeaveFormConfirmation from '../../Form/LeaveFormConfirmation';
 import NameField from '../../Form/NameField';
-import NumberField from '../../Form/NumberField';
 import OsacForm from '../../Form/OsacForm';
 import TextAreaField from '../../Form/TextAreaField';
 import TextField from '../../Form/TextField';
@@ -43,14 +43,14 @@ const InstanceTypeCreateForm = () => {
           metadata: { name: values.metadata.name },
           spec: {
             description: values.spec.description,
-            vcpus: Number(values.spec.vcpus),
-            memoryGib: Number(values.spec.memoryGib),
+            vcpus: values.spec.vcpus,
+            memoryGib: values.spec.memoryGib,
             ...(hasGpu
               ? {
                   gpu: {
                     pciDeviceSelector: gpu.pciDeviceSelector,
                     resourceName: gpu.resourceName,
-                    count: Number(gpu.count),
+                    count: gpu.count,
                   },
                 }
               : {}),
@@ -81,20 +81,20 @@ const InstanceTypeCreateForm = () => {
                   label={t('Description')}
                   fieldId={instanceTypeFieldIds.description}
                 />
-                <NumberField
+                <IntegerField
                   name="spec.vcpus"
                   label={t('vCPUs')}
                   fieldId={instanceTypeFieldIds.vcpus}
                   isRequired
                 />
-                <NumberField
+                <IntegerField
                   name="spec.memoryGib"
                   label={t('Memory (GiB)')}
                   fieldId={instanceTypeFieldIds.memoryGib}
                   isRequired
                 />
                 <FormSection title={t('GPU')}>
-                  <NumberField
+                  <IntegerField
                     name="spec.gpu.count"
                     label={t('GPU count')}
                     fieldId={instanceTypeFieldIds.gpuCount}

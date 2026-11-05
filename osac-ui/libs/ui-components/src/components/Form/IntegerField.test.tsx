@@ -6,30 +6,6 @@ import { describe, expect, it, vi } from 'vitest';
 import IntegerField from './IntegerField';
 
 describe('IntegerField', () => {
-  it('preserves bigint precision when submitting a large integer', async () => {
-    const onSubmit = vi.fn();
-    const user = userEvent.setup();
-
-    render(
-      <Formik initialValues={{ capacityGb: undefined as bigint | undefined }} onSubmit={onSubmit}>
-        <Form>
-          <IntegerField
-            name="capacityGb"
-            label="Capacity (GiB)"
-            fieldId="capacity-gib"
-            type="bigint"
-          />
-          <button type="submit">Submit</button>
-        </Form>
-      </Formik>,
-    );
-
-    await user.type(screen.getByRole('textbox', { name: 'Capacity (GiB)' }), '9007199254740993');
-    await user.click(screen.getByRole('button', { name: 'Submit' }));
-
-    expect(onSubmit).toHaveBeenCalledWith({ capacityGb: 9007199254740993n }, expect.any(Object));
-  });
-
   it('stores an empty numeric field as undefined', async () => {
     const onSubmit = vi.fn();
     const user = userEvent.setup();
@@ -57,6 +33,7 @@ describe('IntegerField', () => {
     );
 
     const input = screen.getByRole('spinbutton', { name: 'Cores' });
+    expect(input).not.toHaveAttribute('step');
     fireEvent.change(input, { target: { value: '2.5' } });
 
     expect(input).toHaveValue(null);

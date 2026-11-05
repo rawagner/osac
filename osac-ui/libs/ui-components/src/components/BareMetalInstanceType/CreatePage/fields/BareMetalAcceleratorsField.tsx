@@ -69,7 +69,6 @@ const BareMetalAcceleratorsField = () => {
                   label={t('Memory (GiB)')}
                   fieldId={`baremetal-accelerator-${index}-memory`}
                   min={1}
-                  step={1}
                 />
               </FormFieldGroup>
             </StackItem>

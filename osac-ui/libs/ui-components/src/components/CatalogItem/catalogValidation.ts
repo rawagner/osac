@@ -9,12 +9,12 @@ export const catalogRequiredResourceSelectValue = (message: string) =>
     .object({ id: yup.string(), name: yup.string() })
     .test('resource-select-required', message, (value) => Boolean(value?.id));
 
-export const catalogLockedStringField = (valueSchema: yup.StringSchema, requiredMessage: string) =>
+export const catalogLockedField = <T extends yup.Schema>(valueSchema: T, requiredMessage: string) =>
   yup.object({
     locked: yup.boolean(),
     value: valueSchema.when('locked', {
       is: true,
-      then: (schema) => schema.trim().required(requiredMessage),
+      then: (schema) => schema.required(requiredMessage) as T,
     }),
   });
 

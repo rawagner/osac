@@ -18,6 +18,7 @@ import {
   FormFieldHelper,
   getFormFieldHelperDescribedBy,
 } from '@osac/ui-components/components/Form/FormFieldHelper';
+import TextField from '@osac/ui-components/components/Form/TextField';
 
 import { useTranslation } from '../../../../hooks/useTranslation';
 import { getVisibleFieldError } from '../../../Form/fieldError';
@@ -31,7 +32,6 @@ import {
   decodeSecretValue,
   encodeSecretValue,
 } from '../values';
-import TextField from '@osac/ui-components/components/Form/TextField';
 
 type InputMode = 'enter' | 'upload';
 

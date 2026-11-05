@@ -29,12 +29,8 @@ const getNumericInput = (name: string) => screen.getByRole('spinbutton', { name 
 
 const fillValidForm = async (user: ReturnType<typeof renderForm>['user']) => {
   await user.type(screen.getByRole('textbox', { name: 'Name' }), 'gp-small');
-  fireEvent.change(getNumericInput('vCPUs'), {
-    target: { value: '4' },
-  });
-  fireEvent.change(getNumericInput('Memory (GiB)'), {
-    target: { value: '16' },
-  });
+  await user.type(getNumericInput('vCPUs'), '4');
+  await user.type(getNumericInput('Memory (GiB)'), '16');
 };
 
 describe('InstanceTypeCreateForm', () => {
@@ -53,8 +49,9 @@ describe('InstanceTypeCreateForm', () => {
     expect(screen.getByRole('textbox', { name: 'PCI device selector' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Resource name' })).toBeInTheDocument();
     expect(getNumericInput('GPU count')).toHaveAttribute('type', 'number');
-    expect(screen.getAllByRole('button', { name: 'Minus' })).toHaveLength(3);
-    expect(screen.getAllByRole('button', { name: 'Plus' })).toHaveLength(3);
+    expect(getNumericInput('vCPUs')).toHaveValue(null);
+    expect(getNumericInput('Memory (GiB)')).toHaveValue(null);
+    expect(getNumericInput('GPU count')).toHaveValue(null);
     expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
@@ -78,9 +75,8 @@ describe('InstanceTypeCreateForm', () => {
 
   it.each([
     ['blank', '', 'vCPUs are required'],
-    ['decimal', '1.5', 'Must be a whole number'],
+    ['decimal', '1.5', 'vCPUs are required'],
     ['zero', '0', 'Must be greater than zero'],
-    ['negative', '-1', 'Must be greater than zero'],
   ])('shows a validation error for %s vcpus', async (_label, vcpus, expectedMessage) => {
     const { user } = renderForm();
 
@@ -100,9 +96,8 @@ describe('InstanceTypeCreateForm', () => {
 
   it.each([
     ['blank', '', 'Memory is required'],
-    ['decimal', '1.5', 'Must be a whole number'],
+    ['decimal', '1.5', 'Memory is required'],
     ['zero', '0', 'Must be greater than zero'],
-    ['negative', '-1', 'Must be greater than zero'],
   ])('shows a validation error for %s Memory (GiB)', async (_label, memoryGib, expectedMessage) => {
     const { user } = renderForm();
 
@@ -122,9 +117,8 @@ describe('InstanceTypeCreateForm', () => {
 
   it.each([
     ['blank', '', 'Required when configuring a GPU'],
-    ['decimal', '1.5', 'Must be a whole number'],
+    ['decimal', '1.5', 'Required when configuring a GPU'],
     ['zero', '0', 'Must be greater than zero'],
-    ['negative', '-1', 'Must be greater than zero'],
   ])('shows a validation error for %s GPU count', async (_label, count, expectedMessage) => {
     const { user } = renderForm();
 

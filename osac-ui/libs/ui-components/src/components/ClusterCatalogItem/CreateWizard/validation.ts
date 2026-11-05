@@ -6,8 +6,8 @@ import type { ClusterCatalogItemValues } from './values';
 import { buildCidrSchema } from '../../../validation/cidr-validation';
 import {
   catalogGeneralStepSchema,
+  catalogLockedField,
   catalogLockedResourceField,
-  catalogLockedStringField,
 } from '../../CatalogItem/catalogValidation';
 import {
   clusterNetworkDoNotOverlapTest,
@@ -32,7 +32,7 @@ const nodeSetField = (t: TFunction) =>
   });
 
 const cidrField = (t: TFunction, label: string) =>
-  catalogLockedStringField(buildCidrSchema(t, 'ipv4'), t(`${label} is required when locked`));
+  catalogLockedField(buildCidrSchema(t, 'ipv4'), t(`${label} is required when locked`));
 
 export const buildClusterCatalogStepSchema = (
   stepId: ClusterCatalogWizardStepId,
