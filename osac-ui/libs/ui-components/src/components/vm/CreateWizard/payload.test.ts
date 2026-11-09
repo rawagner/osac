@@ -299,7 +299,7 @@ describe('buildComputeInstanceCreatePayload — disk storage tiers', () => {
   it('sends the boot disk tier id and name', () => {
     const values = baseValues();
     values.spec.bootDisk = {
-      sizeGib: provisioningFieldValue('20'),
+      sizeGib: provisioningFieldValue(20),
       storageTier: provisioningFieldValue({ id: 'id-balanced', name: 'balanced' }),
     };
 
@@ -314,7 +314,7 @@ describe('buildComputeInstanceCreatePayload — disk storage tiers', () => {
   it('omits storage_tier from the boot disk when no tier is selected', () => {
     const values = baseValues();
     values.spec.bootDisk = {
-      sizeGib: provisioningFieldValue('20'),
+      sizeGib: provisioningFieldValue(20),
       storageTier: provisioningFieldValue(emptyResourceSelectValue()),
     };
 
@@ -327,11 +327,11 @@ describe('buildComputeInstanceCreatePayload — disk storage tiers', () => {
   it('carries both the boot disk tier and each additional disk tier', () => {
     const values = baseValues();
     values.spec.bootDisk = {
-      sizeGib: provisioningFieldValue('20'),
+      sizeGib: provisioningFieldValue(20),
       storageTier: provisioningFieldValue({ id: 'id-fast', name: 'fast' }),
     };
     values.spec.additionalDisks = provisioningFieldValue([
-      { sizeGib: '100', storageTier: { id: 'id-bulk', name: 'bulk' } },
+      { sizeGib: 100, storageTier: { id: 'id-bulk', name: 'bulk' } },
     ]);
 
     const payload = buildComputeInstanceCreatePayload(values, vmCatalogItem);
@@ -345,46 +345,13 @@ describe('buildComputeInstanceCreatePayload — disk storage tiers', () => {
     ]);
   });
 
-  it('drops additional disk rows that have no size', () => {
+  it('omits additional_disks when no rows were added', () => {
     const values = baseValues();
-    values.spec.bootDisk = {
-      sizeGib: provisioningFieldValue('20'),
-      storageTier: provisioningFieldValue(emptyResourceSelectValue()),
-    };
-    values.spec.additionalDisks = provisioningFieldValue([
-      { sizeGib: '100', storageTier: { id: 'id-bulk', name: 'bulk' } },
-      { sizeGib: '', storageTier: { id: 'id-fast', name: 'fast' } },
-    ]);
-
-    const payload = buildComputeInstanceCreatePayload(values, vmCatalogItem);
-
-    expect(payload.spec?.additionalDisks?.items).toEqual([
-      { sizeGib: 100, storageTier: { id: 'id-bulk', name: 'bulk' } },
-    ]);
-  });
-
-  it('omits additional_disks entirely when no rows have a size', () => {
-    const values = baseValues();
-    values.spec.additionalDisks = provisioningFieldValue([
-      { sizeGib: '', storageTier: { id: 'id-fast', name: 'fast' } },
-    ]);
+    values.spec.additionalDisks = provisioningFieldValue([]);
 
     const payload = buildComputeInstanceCreatePayload(values, vmCatalogItem);
 
     expect(payload.spec).not.toHaveProperty('additionalDisks');
-  });
-
-  it('still sends non-empty additional disks as usual', () => {
-    const values = baseValues();
-    values.spec.additionalDisks = provisioningFieldValue([
-      { sizeGib: '100', storageTier: { id: 'id-bulk', name: 'bulk' } },
-    ]);
-
-    const payload = buildComputeInstanceCreatePayload(values, vmCatalogItem);
-
-    expect(payload.spec?.additionalDisks?.items).toEqual([
-      { sizeGib: 100, storageTier: { id: 'id-bulk', name: 'bulk' } },
-    ]);
   });
 });
 
@@ -660,11 +627,11 @@ describe('buildComputeInstanceCreatePayload — locked catalog fields', () => {
       true,
     );
     values.spec.bootDisk = {
-      sizeGib: provisioningFieldValue('20', true),
+      sizeGib: provisioningFieldValue(20, true),
       storageTier: provisioningFieldValue({ id: 'id-balanced', name: 'balanced' }, true),
     };
     values.spec.additionalDisks = provisioningFieldValue(
-      [{ sizeGib: '100', storageTier: { id: 'id-bulk', name: 'bulk' } }],
+      [{ sizeGib: 100, storageTier: { id: 'id-bulk', name: 'bulk' } }],
       true,
     );
     values.spec.networking.networkAttachment = provisioningFieldValue(

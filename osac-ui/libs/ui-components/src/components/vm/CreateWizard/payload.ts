@@ -88,9 +88,8 @@ export const buildComputeInstanceCreatePayload = (
   }
 
   const bootDisk: { sizeGib?: number; storageTier?: { id?: string; name?: string } } = {};
-  const bootDiskRaw = values.spec.bootDisk.sizeGib.value.trim();
-  if (!values.spec.bootDisk.sizeGib.locked && bootDiskRaw) {
-    bootDisk.sizeGib = Number(bootDiskRaw);
+  if (!values.spec.bootDisk.sizeGib.locked) {
+    bootDisk.sizeGib = values.spec.bootDisk.sizeGib.value;
   }
   if (!values.spec.bootDisk.storageTier.locked) {
     Object.assign(bootDisk, tierField(values.spec.bootDisk.storageTier.value));
@@ -99,17 +98,13 @@ export const buildComputeInstanceCreatePayload = (
     spec.bootDisk = bootDisk;
   }
 
-  if (!values.spec.additionalDisks.locked) {
-    const additionalDisks = values.spec.additionalDisks.value
-      .filter((disk) => disk.sizeGib.trim())
-      .map((disk) => ({ sizeGib: Number(disk.sizeGib.trim()), ...tierField(disk.storageTier) }));
-    const hasAdditionalDisksDefault =
-      catalogItem?.fields?.additionalDisks?.behavior.case !== undefined;
-    if (additionalDisks.length > 0 || hasAdditionalDisksDefault) {
-      spec.additionalDisks = {
-        items: additionalDisks,
-      };
-    }
+  if (!values.spec.additionalDisks.locked && values.spec.additionalDisks.value.length) {
+    spec.additionalDisks = {
+      items: values.spec.additionalDisks.value.map((disk) => ({
+        sizeGib: disk.sizeGib,
+        ...tierField(disk.storageTier),
+      })),
+    };
   }
 
   return {
