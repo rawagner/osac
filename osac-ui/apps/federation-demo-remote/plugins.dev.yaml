@@ -1,0 +1,3 @@
+plugins:
+  - id: federation-demo
+    url: http://localhost:5174/

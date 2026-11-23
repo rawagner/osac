@@ -13,6 +13,8 @@
   "dependencies": {
     "@bufbuild/protobuf": "^2.12.0",
     "@connectrpc/connect-web": "^2.1.2",
+    "@module-federation/runtime": "2.9.3",
+    "@osac/extensions": "workspace:*",
     "@osac/types": "workspace:*",
     "@osac/ui-components": "workspace:*",
     "@patternfly/patternfly": "^6.6.1",
@@ -32,6 +34,7 @@
     "victory": "^37.3.6"
   },
   "devDependencies": {
+    "@module-federation/vite": "^1.24.1",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.0.0",

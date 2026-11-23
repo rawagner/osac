@@ -17,6 +17,7 @@ const testDependencyAliases = [
 export default defineConfig({
   plugins: [react()],
   resolve: {
+    dedupe: ['react', 'react-dom'],
     alias: [
       {
         find: /^@osac\/ui-components\/(.+)$/,
@@ -39,7 +40,11 @@ export default defineConfig({
     ],
     server: {
       deps: {
-        inline: ['@testing-library/react', '@testing-library/user-event', '@testing-library/jest-dom'],
+        inline: [
+          '@testing-library/react',
+          '@testing-library/user-event',
+          '@testing-library/jest-dom',
+        ],
       },
     },
   },

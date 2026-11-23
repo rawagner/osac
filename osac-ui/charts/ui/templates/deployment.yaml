@@ -14,6 +14,10 @@ spec:
   replicas: 1
   template:
     metadata:
+      {{- if .Values.plugins }}
+      annotations:
+        checksum/plugins: {{ toYaml .Values.plugins | sha256sum }}
+      {{- end }}
       labels:
         app: osac-ui
     spec:
@@ -25,9 +29,21 @@ spec:
       - name: auth-ca-bundle
         configMap:
           name: {{ $authCaBundleCM }}
+      {{- if .Values.plugins }}
+      - name: plugin-config
+        configMap:
+          name: osac-ui-plugins
+      {{- end }}
       containers:
       - name: osac-ui
         image: {{ .Values.images.ui }}
+        {{- if .Values.plugins }}
+        command:
+        - ./osac-proxy
+        args:
+        - --plugin
+        - /etc/osac-ui/plugins.yaml
+        {{- end }}
         {{ if ne .Values.images.pullPolicy "auto" }}
         imagePullPolicy: {{ .Values.images.pullPolicy }}
         {{ end }}
@@ -40,6 +56,12 @@ spec:
           mountPath: /etc/osac-ui/tls/api
         - name: auth-ca-bundle
           mountPath: /etc/osac-ui/tls/auth
+        {{- if .Values.plugins }}
+        - name: plugin-config
+          mountPath: /etc/osac-ui/plugins.yaml
+          subPath: plugins.yaml
+          readOnly: true
+        {{- end }}
         envFrom:
         - configMapRef:
             name: osac-ui

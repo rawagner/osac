@@ -1,7 +1,8 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { Page, SkipToContent } from '@patternfly/react-core';
+import { Page, PageSection, SkipToContent, Spinner } from '@patternfly/react-core';
 
+import { isRoute, useExtensions } from '@osac/extensions';
 import { ServiceTier } from '@osac/types';
 import BareMetalCatalogLaunchPage from '@osac/ui-components/components/BareMetalInstance/CreateWizard/BareMetalCatalogLaunchPage';
 import BareMetalInstanceCatalogItemDetailPage from '@osac/ui-components/components/BareMetalInstanceCatalogItem/Details/BareMetalInstanceCatalogItemDetailPage';
@@ -42,6 +43,7 @@ import { defaultRouteForRole } from './shellRoutes';
 import { ShellSidebar } from './ShellSidebar';
 import { StorageRoutes } from './StorageRoutes';
 import { TenantRoutes } from './TenantRoutes';
+import LazyComponent from '../extensions/LazyComponent';
 
 const MAIN_CONTENT_ID = 'osac-main-content';
 
@@ -54,6 +56,7 @@ const ShellRoute = ({ children }: { children: ReactNode }) => {
 export const AppShell = ({ logout }: { logout: () => Promise<void> }) => {
   const { role } = useSession();
   const { t } = useTranslation();
+  const [federatedRoutes, federatedRoutesLoading] = useExtensions(isRoute);
 
   const defaultRoute = defaultRouteForRole(role);
 
@@ -76,6 +79,27 @@ export const AppShell = ({ logout }: { logout: () => Promise<void> }) => {
             </ShellRoute>
           }
         />
+        {federatedRoutes.map((route) => {
+          const { path } = route.properties;
+          return (
+            <Route
+              key={route.id}
+              path={path}
+              element={
+                <PageSection>
+                  <Suspense fallback={<Spinner aria-label={t('Loading extensions')} />}>
+                    <LazyComponent
+                      codeRef={route.properties.component}
+                      componentProps={{}}
+                      pluginId={route.pluginId}
+                      extensionId={route.id}
+                    />
+                  </Suspense>
+                </PageSection>
+              }
+            />
+          );
+        })}
         <Route
           path="/catalog/vms"
           element={
@@ -382,7 +406,16 @@ export const AppShell = ({ logout }: { logout: () => Promise<void> }) => {
             </ShellRoute>
           }
         />
-        <Route path="*" element={<Navigate to={defaultRoute} replace />} />
+        <Route
+          path="*"
+          element={
+            federatedRoutesLoading ? (
+              <Spinner aria-label={t('Loading extensions')} />
+            ) : (
+              <Navigate to={defaultRoute} replace />
+            )
+          }
+        />
       </Routes>
     </Page>
   );

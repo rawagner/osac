@@ -1,0 +1,23 @@
+{
+  "apiVersion": "osac.ui.plugin.v1",
+  "id": "federation-demo",
+  "name": "Federation demo",
+  "extensions": [
+    {
+      "type": "osac.ui.extension.v1.Route",
+      "properties": {
+        "path": "/extensions/federation-demo",
+        "component": { "$codeRef": "App" }
+      }
+    },
+    {
+      "type": "osac.ui.extension.v1.NavigationLink",
+      "properties": {
+        "id": "federation-demo",
+        "label": "Federation demo",
+        "path": "/extensions/federation-demo",
+        "allowedRoles": ["admin", "tenant-admin"]
+      }
+    }
+  ]
+}

@@ -12,6 +12,7 @@ import {
 import VmConsolePage from '@osac/ui-components/components/vm/VmConsolePage';
 import { SessionProvider, useSession } from '@osac/ui-components/hooks/use-session';
 
+import { FederatedContextProviders } from './extensions/FederatedContextProviders';
 import { useOIDCLogin } from './hooks/oidc-login';
 import { AppShell } from './shell/AppShell';
 import { defaultRouteForRole } from './shell/shellRoutes';
@@ -49,13 +50,15 @@ const App = () => {
 
   return (
     <SessionProvider role={role} username={username} tenantId={tenantId}>
-      <Routes>
-        <Route path="/" element={<LoggedInHomeRedirect />} />
+      <FederatedContextProviders>
+        <Routes>
+          <Route path="/" element={<LoggedInHomeRedirect />} />
 
-        {role !== 'admin' && <Route path="/vms/:id/console" element={<VmConsolePage />} />}
+          {role !== 'admin' && <Route path="/vms/:id/console" element={<VmConsolePage />} />}
 
-        <Route path="/*" element={<AppShell logout={logout} />} />
-      </Routes>
+          <Route path="/*" element={<AppShell logout={logout} />} />
+        </Routes>
+      </FederatedContextProviders>
     </SessionProvider>
   );
 };

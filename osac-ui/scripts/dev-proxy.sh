@@ -49,4 +49,4 @@ fi
 export BASE_UI_URL="${BASE_UI_URL:-http://localhost:5173}"
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../proxy"
-exec nodemon --watch 'proxy/**/*' --exec 'go run' main.go --signal SIGTERM
+exec nodemon --signal SIGTERM --watch '**/*.go' --exec 'go run' . "$@"

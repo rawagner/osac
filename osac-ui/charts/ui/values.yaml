@@ -47,3 +47,14 @@ images:
   ui: ghcr.io/osac-project/osac-ui:main  # PLACEHOLDER -- overwritten at release time by osac-build-and-publish.yaml
   # "auto" leaves the field unset so Kubernetes selects its tag-based default.
   pullPolicy: auto
+
+# Plugin base URLs and optional BFF upstream URLs. A BFF is served at
+# /api/plugin/<id>, derived from the unique plugin ID. Use HTTPS for both URLs;
+# HTTP frontend or BFF URLs require PLUGINS_INSECURE=1 in the proxy env.
+plugins: []
+#  - id: federation-demo
+#    url: https://plugins.example.com/
+#  - id: ai-grid-provider-console
+#    url: https://plugins.example.com/
+#    bff:
+#      url: https://ai-grid-provider-console.ai-grid.svc:8443

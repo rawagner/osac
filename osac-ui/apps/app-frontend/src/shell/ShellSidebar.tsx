@@ -12,10 +12,16 @@ import {
   PageSidebarBody,
 } from '@patternfly/react-core';
 
+import {
+  isNavLink as isNavLinkExtension,
+  isNavSection as isNavSectionExtension,
+  navigationRoleAllowed,
+  useExtensions,
+} from '@osac/extensions';
 import { useSession } from '@osac/ui-components/hooks/use-session';
 import { useTranslation } from '@osac/ui-components/hooks/useTranslation';
 
-import { type NavLink, isNavSection, navRowsForRole } from './shellNav';
+import { type NavLink, type NavSection, isNavSection, navRowsForRole } from './shellNav';
 
 import './ShellSidebar.css';
 
@@ -41,11 +47,53 @@ const ShellNavItem = ({ item }: { item: NavLink }) => {
 export const ShellSidebar = () => {
   const { role, enabledServices } = useSession();
   const { t } = useTranslation();
+  const [navSectionExtensions] = useExtensions(isNavSectionExtension);
+  const [navLinkExtensions] = useExtensions(isNavLinkExtension);
 
-  const navRows = React.useMemo(
-    () => navRowsForRole(role, t, enabledServices),
-    [role, t, enabledServices],
-  );
+  const navRows = React.useMemo(() => {
+    const rows = navRowsForRole(role, t, enabledServices);
+    const pluginSections = new Map<string, NavSection>();
+
+    navSectionExtensions.forEach((extension) => {
+      pluginSections.set(extension.properties.id, {
+        kind: 'section',
+        id: extension.properties.id,
+        label: extension.properties.label,
+        children: [],
+      });
+    });
+
+    rows.push(...pluginSections.values());
+
+    navLinkExtensions.forEach((extension) => {
+      if (!navigationRoleAllowed(extension.properties.allowedRoles, role)) {
+        return;
+      }
+
+      const link: NavLink = {
+        kind: 'link',
+        id: extension.id,
+        label: extension.properties.label,
+        path: extension.properties.path,
+      };
+      const section =
+        extension.properties.section === undefined
+          ? undefined
+          : (pluginSections.get(extension.properties.section) ??
+            rows.find(
+              (row): row is NavSection =>
+                isNavSection(row) && row.id === extension.properties.section,
+            ));
+
+      if (section) {
+        section.children.push(link);
+      } else {
+        rows.push(link);
+      }
+    });
+
+    return rows.filter((row) => !isNavSection(row) || row.children.length > 0);
+  }, [role, t, enabledServices, navSectionExtensions, navLinkExtensions]);
 
   return (
     <PageSidebar>

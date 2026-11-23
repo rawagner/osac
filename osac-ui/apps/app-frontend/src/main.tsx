@@ -35,6 +35,7 @@ const connectTransport = createConnectTransport({
 import '@patternfly/patternfly/patternfly.css';
 import '@patternfly/patternfly/patternfly-addons.css';
 import './global.css';
+import { FederatedAppsProvider } from './extensions/FederatedAppsProvider';
 /* eslint-enable import/order */
 
 const queryClient = new QueryClient({
@@ -60,7 +61,9 @@ if (rootElement) {
       <ApiProvider transport={connectTransport}>
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
-            <RouterProvider router={router} />
+            <FederatedAppsProvider>
+              <RouterProvider router={router} />
+            </FederatedAppsProvider>
           </ToastProvider>
         </QueryClientProvider>
       </ApiProvider>

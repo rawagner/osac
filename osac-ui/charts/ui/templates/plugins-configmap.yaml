@@ -1,0 +1,12 @@
+{{- if .Values.plugins }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: osac-ui-plugins
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "osac.standardLabels" . | nindent 4 }}
+data:
+  plugins.yaml: |
+    {{- dict "plugins" .Values.plugins | toYaml | nindent 4 }}
+{{- end }}

@@ -3,8 +3,12 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	"flag"
 	"io"
+	"log"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"time"
 
 	"github.com/andybalholm/brotli"
@@ -22,6 +26,13 @@ import (
 )
 
 func main() {
+	pluginConfigPath := flag.String("plugin", "", "YAML file containing runtime plugin descriptors and optional BFF routes")
+	flag.Parse()
+	plugins, err := loadPluginConfig(*pluginConfigPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log := proxylog.InitLogs()
 
 	if config.FulfillmentApiUrl == "" {
@@ -74,6 +85,18 @@ func main() {
 			return
 		}
 	})
+	registerPluginSourceRoutes(router, plugins)
+	for _, plugin := range plugins {
+		if plugin.BFF == nil {
+			continue
+		}
+		bffPath := pluginBFFPath(plugin.ID)
+		handler := pluginBFFHandler(plugin, tlsConfig, func(r *http.Request, err error) {
+			log.WithError(err).WithField("path", r.URL.Path).Warn("plugin BFF request failed")
+		})
+		router.Handle(bffPath, handler)
+		router.Handle(bffPath+"/*", handler)
+	}
 
 	// Auth endpoints — only available when OIDC_CLIENT_ID is configured.
 	if config.OIDCClientID != "" {
@@ -93,7 +116,7 @@ func main() {
 	// Do not run Auth middleware here: it injects the OIDC access token as Bearer, and
 	// console-proxy prefers Authorization over the cookie, causing 401 invalid ticket.
 	if config.FulfillmentApiUrl != "" {
-		consoleWSHandler, err := bridge.NewConsoleWebSocketProxy(config.FulfillmentApiUrl, tlsConfig)
+		consoleWSHandler, err := bridge.NewConsoleWebSocketProxy(config.FulfillmentApiUrl, tlsConfig.Clone())
 		if err != nil {
 			log.WithError(err).Fatal("Failed to create console WebSocket proxy")
 		}
@@ -124,7 +147,7 @@ func main() {
 			reflectionToken = tr.AccessToken
 		}
 
-		connectHandler, err := bridge.NewConnectJSONProxy(grpcTarget, tlsConfig, reflectionToken)
+		connectHandler, err := bridge.NewConnectJSONProxy(grpcTarget, tlsConfig.Clone(), reflectionToken)
 		if err != nil {
 			if reflectionToken == "" && status.Code(err) == codes.Unauthenticated {
 				log.WithError(err).Fatal(
@@ -151,7 +174,7 @@ func main() {
 	}
 
 	log.Info("Serving SPA static files from /app/public")
-	spa := server.SpaHandler{Dir: "/app/public"}
+	spa := server.SpaHandler{Dir: "/app/public", ContentSecurityPolicy: pluginCSP(plugins)}
 	router.NotFound(spa.ServeHTTP)
 
 	srv := &http.Server{
@@ -168,10 +191,61 @@ func main() {
 func newHTTPClient(tlsConfig *tls.Config) *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig:     tlsConfig,
+			TLSClientConfig:     tlsConfig.Clone(),
 			IdleConnTimeout:     90 * time.Second,
 			MaxIdleConnsPerHost: 2,
 		},
 		Timeout: 15 * time.Second,
 	}
+}
+
+func registerPluginSourceRoutes(router chi.Router, plugins []pluginDefinition) {
+	handler := pluginSourcesHandler(plugins).ServeHTTP
+	router.Get("/api/plugins", handler)
+}
+
+func newProxyTransport(tlsConfig *tls.Config) *http.Transport {
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	if tlsConfig != nil {
+		// Avoid the shared-TLS ALPN issue from OSAC-3081: DefaultTransport attempts
+		// HTTP/2 and mutates NextProtos during setup, so keep it off shared config.
+		transport.TLSClientConfig = tlsConfig.Clone()
+	}
+	transport.IdleConnTimeout = 90 * time.Second
+	return transport
+}
+
+func pluginBFFHandler(plugin pluginDefinition, tlsConfig *tls.Config, onError func(*http.Request, error)) http.Handler {
+	if plugin.BFF == nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, "plugin service unavailable", http.StatusBadGateway)
+		})
+	}
+
+	target, err := url.Parse(plugin.BFF.URL)
+	if err != nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, "plugin service unavailable", http.StatusBadGateway)
+		})
+	}
+
+	bffPath := pluginBFFPath(plugin.ID)
+	proxy := &httputil.ReverseProxy{
+		Rewrite: func(pr *httputil.ProxyRequest) {
+			pr.SetURL(target)
+			pr.SetXForwarded()
+		},
+		Transport: newProxyTransport(tlsConfig),
+		ModifyResponse: func(response *http.Response) error {
+			response.Header.Del("Set-Cookie")
+			return nil
+		},
+		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+			if onError != nil {
+				onError(r, err)
+			}
+			http.Error(w, "plugin service unavailable", http.StatusBadGateway)
+		},
+	}
+	return proxymiddleware.PluginBFFAuth(http.StripPrefix(bffPath, proxy))
 }

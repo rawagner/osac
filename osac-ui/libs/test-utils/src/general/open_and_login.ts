@@ -2,12 +2,13 @@ import { type Page, expect } from '@playwright/test';
 
 import { LoginPage } from '../../../locators/login_page';
 
-export type LoginUserType = 'admin' | 'tenant_type' | 'tenant_admin';
+export type LoginUserType = 'admin' | 'tenant_type' | 'tenant_admin' | 'tenant_user';
 
 const accountRoleByUserType: Record<LoginUserType, string> = {
   admin: 'Cloud provider admin',
   tenant_type: 'IdP manager',
   tenant_admin: 'Tenant admin',
+  tenant_user: 'Tenant user',
 };
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

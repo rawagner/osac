@@ -1,13 +1,26 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+import { federation } from '@module-federation/vite';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
-const uiComponentsSrc = resolve(__dirname, '../../libs/ui-components/src')
+const uiComponentsSrc = resolve(__dirname, '../../libs/ui-components/src');
 
 export default defineConfig({
   plugins: [
     react(),
+    federation({
+      name: 'osac_ui',
+      dts: false,
+      shared: {
+        react: { singleton: true },
+        'react/': { singleton: true },
+        'react-dom': { singleton: true },
+        'react-dom/': { singleton: true },
+        'react-router': { singleton: true },
+        'react-router-dom': { singleton: true },
+      },
+    }),
     viteStaticCopy({
       targets: [
         {
@@ -54,4 +67,4 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
-})
+});

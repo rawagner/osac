@@ -107,6 +107,10 @@ const e2eDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../e2e-t
 const genericDir = path.join(e2eDir, 'generic');
 const vmaasDir = path.join(e2eDir, 'vmaas');
 const networkingDir = path.join(e2eDir, 'networking');
+const pluginsDir = path.join(
+  e2eDir,
+  'plugins',
+);
 const preResourceBaseCreateTestMatch =
   /create\.(instance_type|disk_images|storage_tier|tenant)\.spec\.ts/;
 const preResourceCatalogCreateTestMatch = /create\.catalog\.spec\.ts/;
@@ -172,6 +176,12 @@ export default defineConfig({
       testMatch: /smoke\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], storageState: AUTH_FILE },
       dependencies: ['setup'],
+    },
+    {
+      name: 'plugins',
+      testDir: pluginsDir,
+      testMatch: /module-federation\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], trace: 'off', video: 'off' },
     },
     {
       name: 'chromium',

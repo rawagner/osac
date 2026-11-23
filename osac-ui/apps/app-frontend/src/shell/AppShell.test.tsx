@@ -1,6 +1,9 @@
+import { type ReactNode } from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { PluginDescriptorsContext } from '@osac/extensions';
+import type { PluginDescriptor } from '@osac/extensions';
 import { ServiceTier } from '@osac/types';
 import type { UserRole } from '@osac/ui-components/shellTypes';
 import { renderWithProviders } from '@osac/ui-components/test-utils/TestProviders';
@@ -13,24 +16,99 @@ vi.mock('react-svg', () => ({
   ReactSVG: () => <svg aria-hidden="true" />,
 }));
 
+const pluginRouteThrows = vi.hoisted(() => ({ value: false }));
+const pluginRouteLoadFails = vi.hoisted(() => ({ value: false }));
+const loadRemote = vi.hoisted(() => vi.fn());
+
+vi.mock('@module-federation/runtime', () => ({ loadRemote }));
+
+const PluginRoute = () => {
+  if (pluginRouteThrows.value) {
+    throw new Error('private route failure');
+  }
+  return <h1>Plugin route</h1>;
+};
+
 import { AppShell } from './AppShell';
+
+const TestPluginDescriptors = ({
+  descriptors,
+  children,
+}: {
+  descriptors: PluginDescriptor[];
+  children: ReactNode;
+}) => {
+  return (
+    <PluginDescriptorsContext.Provider value={{ descriptors, isLoading: false }}>
+      {children}
+    </PluginDescriptorsContext.Provider>
+  );
+};
 
 const renderAppShell = (
   entry: string,
   role: UserRole = 'admin',
   enabledServices: ServiceTier[] = [ServiceTier.CAAS, ServiceTier.VMAAS, ServiceTier.BMAAS],
+  descriptors: PluginDescriptor[] = [],
 ) =>
-  renderWithProviders(<AppShell logout={vi.fn().mockResolvedValue(undefined)} />, {
-    apiFixtures: {
-      enabledServices,
-      privateInstanceTypes: [],
-      privateBaremetalInstanceTypes: [],
+  renderWithProviders(
+    <TestPluginDescriptors descriptors={descriptors}>
+      <AppShell logout={vi.fn().mockResolvedValue(undefined)} />
+    </TestPluginDescriptors>,
+    {
+      apiFixtures: {
+        enabledServices,
+        privateInstanceTypes: [],
+        privateBaremetalInstanceTypes: [],
+      },
+      routerEntries: [entry],
+      session: { role, tenantId: 'tenant-1' },
     },
-    routerEntries: [entry],
-    session: { role, tenantId: 'tenant-1' },
-  });
+  );
+
+const pluginDescriptor: PluginDescriptor = {
+  apiVersion: 'osac.ui.plugin.v1',
+  id: 'inventory',
+  name: 'Inventory',
+  extensions: [
+    {
+      id: 'inventory:0',
+      type: 'osac.ui.extension.v1.Route',
+      properties: {
+        path: '/extensions/inventory',
+        component: { $codeRef: 'App' },
+      },
+    },
+    {
+      id: 'inventory:1',
+      type: 'osac.ui.extension.v1.NavigationLink',
+      properties: {
+        id: 'inventory',
+        label: 'Inventory',
+        path: '/extensions/inventory',
+        allowedRoles: ['tenant-admin'],
+      },
+    },
+  ],
+};
 
 describe('AppShell', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  beforeEach(() => {
+    pluginRouteThrows.value = false;
+    pluginRouteLoadFails.value = false;
+    loadRemote.mockReset();
+    loadRemote.mockImplementation(() => {
+      if (pluginRouteLoadFails.value) {
+        return Promise.reject(new Error('private route import failure'));
+      }
+      return Promise.resolve({ default: PluginRoute });
+    });
+  });
+
   it('renders the storage route through the admin shell', async () => {
     renderAppShell('/admin/infrastructure/storage/backends');
 
@@ -62,6 +140,45 @@ describe('AppShell', () => {
     ).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByText('No bare metal instance types found')).toBeInTheDocument();
+    });
+  });
+
+  it.each(['admin', 'tenant-idp-manager', 'tenant-admin', 'tenant-user'] as UserRole[])(
+    'keeps a plugin route directly accessible to %s regardless of its navigation roles',
+    async (role) => {
+      renderAppShell('/extensions/inventory', role, undefined, [pluginDescriptor]);
+
+      expect(await screen.findByRole('heading', { name: 'Plugin route' })).toBeInTheDocument();
+    },
+  );
+
+  it('shows a safe route-local error when a plugin module import fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    pluginRouteLoadFails.value = true;
+
+    renderAppShell('/extensions/inventory', 'tenant-user', undefined, [pluginDescriptor]);
+
+    expect(await screen.findByText('Unexpected error occurred')).toBeInTheDocument();
+    expect(consoleError).toHaveBeenCalledWith('OSAC UI plugin extension failed', {
+      pluginId: 'inventory',
+      extensionId: 'inventory:0',
+      stage: 'load or render route extension',
+      error: expect.objectContaining({ message: 'private route import failure' }) as Error,
+    });
+  });
+
+  it('shows a safe route-local error when a plugin component render fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    pluginRouteThrows.value = true;
+
+    renderAppShell('/extensions/inventory', 'tenant-user', undefined, [pluginDescriptor]);
+
+    expect(await screen.findByText('Unexpected error occurred')).toBeInTheDocument();
+    expect(consoleError).toHaveBeenCalledWith('OSAC UI plugin extension failed', {
+      pluginId: 'inventory',
+      extensionId: 'inventory:0',
+      stage: 'load or render route extension',
+      error: expect.objectContaining({ message: 'private route failure' }) as Error,
     });
   });
 

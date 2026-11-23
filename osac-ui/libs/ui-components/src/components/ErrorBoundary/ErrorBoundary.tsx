@@ -9,7 +9,12 @@ interface State {
   info: React.ErrorInfo;
 }
 
-class ErrorBoundary extends React.Component<React.PropsWithChildren, State> {
+type ErrorBoundaryProps = React.PropsWithChildren<{
+  fallback?: React.ReactNode;
+  onError?: (error: Error, info: React.ErrorInfo) => void;
+}>;
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
   state = {
     hasError: false,
     error: { message: '', stack: '' } as Error,
@@ -21,23 +26,29 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren, State> {
   };
 
   componentDidCatch = (error: Error, info: React.ErrorInfo) => {
+    this.props.onError?.(error, info);
     this.setState({ error, info });
   };
 
   render() {
     const { hasError, error } = this.state;
-    const { children } = this.props;
+    const { children, fallback } = this.props;
     if (!hasError && !children) {
       return null;
     }
 
-    return hasError ? (
+    if (!hasError) {
+      return children;
+    }
+    if (fallback !== undefined) {
+      return fallback;
+    }
+
+    return (
       <Alert variant="danger" title="Unexpected error occurred" isInline>
         Please reload the page and try again
         <details>{getErrorMessage(error)}</details>
       </Alert>
-    ) : (
-      children
     );
   }
 }
